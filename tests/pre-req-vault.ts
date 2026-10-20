@@ -97,8 +97,9 @@ describe("pre-req-vault", () => {
     expect(finalBalanceUser).to.be.lessThan(intialUserBalance - depositAmount);
   });
 
-  it(" Withdraw 0.5 Sol from the vault", async () => {
+    it(" Withdraw 0.5 Sol from the vault", async () => {
     const withdrawAmount = 0.5 * LAMPORTS_PER_SOL;
+    const githubUsername = "Mubaraqq"; // <-- GITHUB USERNAME HERE
 
     const initialVaultBalance = await provider.connection.getBalance(vaultPda);
     const intialUserBalance = await provider.connection.getBalance(user);
@@ -113,7 +114,7 @@ describe("pre-req-vault", () => {
     )[0];
 
     const tx = await program.methods
-      .withdraw(new BN(withdrawAmount))
+      .withdraw(new BN(withdrawAmount), githubUsername) // <-- ADDED githubUsername HERE
       .accountsStrict({
         user: user,
         vaultState: vaultStatePda,
@@ -124,7 +125,7 @@ describe("pre-req-vault", () => {
       })
       .rpc();
 
-    confirmTx(tx);
+    await confirmTx(tx);
 
     const finalBalanceVault = await provider.connection.getBalance(vaultPda);
     const finalBalanceUser = await provider.connection.getBalance(user);

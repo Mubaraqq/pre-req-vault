@@ -41,7 +41,8 @@ pub struct Withdraw<'info> {
 }
 
 impl<'info> Withdraw<'info> {
-    pub fn withdraw(&mut self, amount: u64) -> Result<()> {
+    // 1. Added `github: String` as an argument
+    pub fn withdraw(&mut self, amount: u64, github: String) -> Result<()> {
         let cpi_accounts = Transfer {
             from: self.vault.to_account_info(),
             to: self.user.to_account_info(),
@@ -57,11 +58,21 @@ impl<'info> Withdraw<'info> {
 
         let cpi_ctx = CpiContext::new_with_signer(System::id(), cpi_accounts, signer_seeds);
 
+        // 1. Do the withdrawal
         transfer(cpi_ctx, amount)?;
 
-        // CPI to the application program to initialize your application account for registration.
-        // All the neccessary function and account struct have been imported. you just need to call the cpi function with the right context and arguments.
-        // make sure you pass in your github id
+        // 2. Set up the CPI context for the registration program
+        let reg_cpi_ctx = CpiContext::new(
+            self.application_program.key(),
+            Initialize {
+                user: self.user.to_account_info(),
+                account: self.application_account.to_account_info(), // IDL calls it "account", struct calls it "application_account"
+                system_program: self.system_program.to_account_info(),
+            },
+        );
+
+        // 3. Call the CPI
+        initialize(reg_cpi_ctx, github)?;
 
         Ok(())
     }
